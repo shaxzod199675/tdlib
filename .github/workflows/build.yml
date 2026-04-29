@@ -12,10 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Java
-        run: |
-          apt-get update && apt-get install -y default-jdk
-
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
@@ -23,16 +19,22 @@ jobs:
         run: |
           git clone --branch v1.8.0 --depth 1 https://github.com/tdlib/td.git
 
-      - name: Build OpenSSL
+      - name: Check environment
         run: |
           cd $GITHUB_WORKSPACE/td/example/android
+          ls -la
+          cat check-environment.sh | head -50
+
+      - name: Build OpenSSL
+        run: |
           export ANDROID_NDK=$ANDROID_HOME/ndk/25.2.0
+          cd $GITHUB_WORKSPACE/td/example/android
           ./build-openssl.sh SDK $ANDROID_NDK OpenSSL_1_1_1w
 
       - name: Build TDLib
         run: |
-          cd $GITHUB_WORKSPACE/td/example/android
           export ANDROID_NDK=$ANDROID_HOME/ndk/25.2.0
+          cd $GITHUB_WORKSPACE/td/example/android
           ./build-tdlib.sh SDK $ANDROID_NDK OpenSSL c++_static Java
           ls -la tdlib/
 
