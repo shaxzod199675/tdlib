@@ -21,17 +21,19 @@ jobs:
 
       - name: Build OpenSSL
         run: |
+          export ANDROID_NDK=$ANDROID_HOME/ndk/27.3.13750724
+          export PATH=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
           cd $GITHUB_WORKSPACE
           wget -q https://www.openssl.org/source/openssl-1.1.1w.tar.gz
           tar xzf openssl-1.1.1w.tar.gz
           cd openssl-1.1.1w
-          ./Configure android-arm64 --prefix=$GITHUB_WORKSPACE/openssl-install
+          ./Configure android-arm64 --cross-compile-prefix=aarch64-linux-android- --prefix=$GITHUB_WORKSPACE/openssl-install
           make -j$(nproc)
           make install_sw
 
       - name: Build TDLib (JSON interface)
         run: |
-          export ANDROID_NDK=$ANDROID_HOME/ndk/25.2.0
+          export ANDROID_NDK=$ANDROID_HOME/ndk/27.3.13750724
           export PATH=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
           export OPENSSL_ROOT_DIR=$GITHUB_WORKSPACE/openssl-install
 
