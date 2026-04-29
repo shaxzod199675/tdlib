@@ -15,6 +15,10 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Install Ninja
+        run: |
+          apt-get update && apt-get install -y ninja-build
+
       - name: Get TDLib
         run: |
           git clone --branch v1.8.0 --depth 1 https://github.com/tdlib/td.git
@@ -58,11 +62,9 @@ jobs:
           ninja -j$(nproc) tdjson
           echo "=== Checking for .so files ==="
           find . -name "*.so" -type f 2>/dev/null
-          ls -la *.so 2>/dev/null || echo "No .so in root"
-          ls -la tdjson/*.so 2>/dev/null || echo "No .so in tdjson dir"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: tdlib-android-arm64
-          path: ${{ github.workspace }}/td/build/
+          path: ${{ github.workspace }}/td/build/**/*.so
