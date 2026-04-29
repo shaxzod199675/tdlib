@@ -8,51 +8,32 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Get TDLib
+      - name: Build TDLib Android
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: td/example/android/Dockerfile
+          platforms: linux/amd64
+          build-args: |
+            ANDROID_NDK_VERSION=23.2.8568313
+            COMMIT_HASH=v1.8.0
+            ANDROID_STL=c++_static
+            TDLIB_INTERFACE=Java
+          outputs: type=local,dest=/tmp/tdlib-output
+
+      - name: Show build output
         run: |
-          git clone --branch v1.8.0 --depth 1 https://github.com/tdlib/td.git
-
-      - name: Build OpenSSL
-        run: |
-          export ANDROID_NDK=$ANDROID_HOME/ndk/27.3.13750724
-          export PATH=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
-          cd $GITHUB_WORKSPACE
-          wget -q https://www.openssl.org/source/openssl-1.1.1w.tar.gz
-          tar xzf openssl-1.1.1w.tar.gz
-          cd openssl-1.1.1w
-          ./Configure android-arm64 --cross-compile-prefix=aarch64-linux-android- --prefix=$GITHUB_WORKSPACE/openssl-install
-          make -j$(nproc)
-          make install_sw
-
-      - name: Build TDLib
-        run: |
-          export ANDROID_NDK=$ANDROID_HOME/ndk/27.3.13750724
-          export PATH=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
-          export OPENSSL_ROOT_DIR=$GITHUB_WORKSPACE/openssl-install
-
-          cd $GITHUB_WORKSPACE/td
-          mkdir -p build && cd build
-          cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
-                -DANDROID_ABI="arm64-v8a" \
-                -DANDROID_PLATFORM=android-24 \
-                -DANDROID_STL=c++_shared \
-                -DTD_ENABLE_JNI=ON \
-                -DTDUTILS_MIME_TYPE=OFF \
-                -DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR \
-                -DCMAKE_BUILD_TYPE=Release \
-                ..
-          cmake --build . --target tdjson -j$(nproc)
-          find . -name "*.so" -type f 2>/dev/null | head -10
+          ls -la /tmp/tdlib-output/ || echo "No output"
+          find /tmp/tdlib-output -name "*.so" 2>/dev/null || echo "No .so files"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: tdlib-android-arm64
-          path: ${{ github.workspace }}/td/example/android/build/*.so
+          path: /tmp/tdlib-output/
