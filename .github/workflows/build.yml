@@ -12,6 +12,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: |
+          apt-get update && apt-get install -y \
+            openjdk-17-jdk \
+            gperf \
+            make \
+            perl \
+            php-cli \
+            unzip \
+            wget \
+            curl
+
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
