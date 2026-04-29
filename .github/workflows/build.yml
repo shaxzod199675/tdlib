@@ -22,7 +22,6 @@ jobs:
       - name: Create stub mime_type files
         run: |
           mkdir -p td/tdutils/generate/auto
-          # Create stub mime_type files - these are minimal implementations
           echo 'const char* get_mime_type_extension(const char* mime_type) { return nullptr; }' > td/tdutils/generate/auto/mime_type_to_extension.cpp
           echo 'const char* get_extension_mime_type(const char* extension) { return nullptr; }' > td/tdutils/generate/auto/extension_to_mime_type.cpp
 
