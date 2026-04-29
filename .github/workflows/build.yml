@@ -55,10 +55,13 @@ jobs:
                 -DCMAKE_BUILD_TYPE=Release \
                 ..
           make -j$(nproc) all
-          ls -la *.so 2>/dev/null || echo "No .so files found"
+          echo "=== Searching for .so files ==="
+          find . -name "*.so" -type f 2>/dev/null
+          echo "=== Searching for .a files ==="
+          find . -name "*.a" -type f 2>/dev/null | head -5
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: tdlib-android-arm64
-          path: ${{ github.workspace }}/td/build/*.so
+          path: ${{ github.workspace }}/td/build/**/*.so
