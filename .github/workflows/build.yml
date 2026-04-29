@@ -48,12 +48,10 @@ jobs:
                 -DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR \
                 -DCMAKE_BUILD_TYPE=Release \
                 ..
-          make -j$(nproc) tdjson
-          echo "=== Looking for tdjson ==="
-          find . -name "*tdjson*" -type f 2>/dev/null
+          make -j$(nproc) all
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: tdlib-android-arm64
-          path: ${{ github.workspace }}/td/build/**/*tdjson*
+          path: ${{ github.workspace }}/td/build/
