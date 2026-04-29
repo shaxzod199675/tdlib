@@ -19,10 +19,16 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Install NDK
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;25.2.0" 2>/dev/null || true
+          ls -la $ANDROID_HOME/ndk/ 2>/dev/null || echo "NDK not found"
+
       - name: Build OpenSSL
         run: |
           export ANDROID_NDK=$ANDROID_HOME/ndk/25.2.0
           export PATH=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
+          ls -la $ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/ | head -20
           cd td
           wget https://www.openssl.org/source/openssl-1.1.1w.tar.gz
           tar xzf openssl-1.1.1w.tar.gz
