@@ -19,12 +19,6 @@ jobs:
         run: |
           git clone --branch v1.8.0 --depth 1 https://github.com/tdlib/td.git
 
-      - name: Check environment
-        run: |
-          cd $GITHUB_WORKSPACE/td/example/android
-          ls -la
-          cat check-environment.sh | head -50
-
       - name: Build OpenSSL
         run: |
           export ANDROID_NDK=$ANDROID_HOME/ndk/25.2.0
