@@ -43,6 +43,7 @@ jobs:
                 -DANDROID_PLATFORM=android-24 \
                 -DANDROID_STL=c++_shared \
                 -DTD_ENABLE_JNI=ON \
+                -DTDUTILS_MIME_TYPE=OFF \
                 -DOPENSSL_ROOT_DIR=$GITHUB_WORKSPACE/openssl-install \
                 -DOPENSSL_CRYPTO_LIBRARY=$GITHUB_WORKSPACE/openssl-install/lib/libcrypto.a \
                 -DOPENSSL_SSL_LIBRARY=$GITHUB_WORKSPACE/openssl-install/lib/libssl.a \
