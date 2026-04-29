@@ -54,7 +54,7 @@ jobs:
                 -DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR \
                 -DCMAKE_BUILD_TYPE=Release \
                 ..
-          make -j$(nproc) tdjson
+          make -j$(nproc) all
           echo "=== Build artifacts ==="
           ls -la
           find . -name "*.so" -type f 2>/dev/null | wc -l
