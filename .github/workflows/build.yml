@@ -31,37 +31,28 @@ jobs:
           make -j$(nproc)
           make install_sw
 
-      - name: Create stub mime_type files
-        run: |
-          mkdir -p td/tdutils/generate/auto
-          echo 'const char* get_mime_type_extension(const char* mime_type) { return nullptr; }' > td/tdutils/generate/auto/mime_type_to_extension.cpp
-          echo 'const char* get_extension_mime_type(const char* extension) { return nullptr; }' > td/tdutils/generate/auto/extension_to_mime_type.cpp
-
-      - name: Build TDLib (JSON interface)
+      - name: Build TDLib using example/android
         run: |
           export ANDROID_NDK=$ANDROID_HOME/ndk/27.3.13750724
           export PATH=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
           export OPENSSL_ROOT_DIR=$GITHUB_WORKSPACE/openssl-install
 
-          cd $GITHUB_WORKSPACE/td
-          mkdir build && cd build
+          cd $GITHUB_WORKSPACE/td/example/android
+          mkdir -p build && cd build
           cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
+                -DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR \
                 -DANDROID_ABI="arm64-v8a" \
                 -DANDROID_PLATFORM=android-24 \
                 -DANDROID_STL=c++_shared \
-                -DTD_ENABLE_JNI=ON \
-                -DTDUTILS_MIME_TYPE=OFF \
-                -DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR \
                 -DCMAKE_BUILD_TYPE=Release \
                 ..
-          make -j$(nproc) all
+          make -j$(nproc) tdjni
           echo "=== Build artifacts ==="
-          ls -la
-          find . -name "*.so" -type f 2>/dev/null | wc -l
-          find . -name "*.a" -type f 2>/dev/null | wc -l
+          find . -name "*.so" -type f 2>/dev/null
+          ls -la *.so 2>/dev/null || echo "No .so files in build dir"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: tdlib-android-arm64
-          path: ${{ github.workspace }}/td/build/**/*.so
+          path: ${{ github.workspace }}/td/example/android/build/*.so
