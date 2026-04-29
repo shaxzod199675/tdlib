@@ -2,20 +2,29 @@ name: Build TDLib
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Get TDLib
+        run: |
+          git clone --branch v1.8.0 --depth 1 https://github.com/tdlib/td.git
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
       - name: Build OpenSSL
         run: |
-          cd $GITHUB_WORKSPACE
-          wget -q https://www.openssl.org/source/openssl-1.1.1w.tar.gz
+          export ANDROID_NDK=$ANDROID_HOME/ndk/25.2.0
+          export PATH=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
+          cd td
+          wget https://www.openssl.org/source/openssl-1.1.1w.tar.gz
           tar xzf openssl-1.1.1w.tar.gz
           cd openssl-1.1.1w
           ./Configure android-arm64 --prefix=$GITHUB_WORKSPACE/openssl-install
@@ -26,16 +35,14 @@ jobs:
         run: |
           export ANDROID_NDK=$ANDROID_HOME/ndk/25.2.0
           export PATH=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
-          export OPENSSL_ROOT_DIR=$GITHUB_WORKSPACE/openssl-install
 
-          cd $GITHUB_WORKSPACE
-          git clone --branch v1.8.0 --depth 1 https://github.com/tdlib/td.git
-          mkdir td/build && cd td/build
+          cd $GITHUB_WORKSPACE/td
+          mkdir build && cd build
           cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
                 -DANDROID_ABI="arm64-v8a" \
                 -DANDROID_PLATFORM=android-24 \
                 -DANDROID_STL=c++_shared \
-                -DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR \
+                -DOPENSSL_ROOT_DIR=$GITHUB_WORKSPACE/openssl-install \
                 -DCMAKE_BUILD_TYPE=Release \
                 ..
           make -j$(nproc) tdjni
@@ -43,5 +50,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tdlib-arm64-v8a
+          name: tdlib-android-arm64
           path: ${{ github.workspace }}/td/build/*.so
