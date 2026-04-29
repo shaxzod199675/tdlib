@@ -43,7 +43,6 @@ jobs:
                 -DANDROID_PLATFORM=android-24 \
                 -DANDROID_STL=c++_shared \
                 -DTD_ENABLE_JNI=ON \
-                -DTDUTILS_MIME_TYPE=OFF \
                 -DOPENSSL_ROOT_DIR=$GITHUB_WORKSPACE/openssl-install \
                 -DOPENSSL_CRYPTO_LIBRARY=$GITHUB_WORKSPACE/openssl-install/lib/libcrypto.a \
                 -DOPENSSL_SSL_LIBRARY=$GITHUB_WORKSPACE/openssl-install/lib/libssl.a \
@@ -52,8 +51,7 @@ jobs:
                 ..
           cmake --build . --target all -j$(nproc)
           cmake --build . --target tdjson -j$(nproc)
-          cmake --build . --target tdjson_private -j$(nproc)
-          ls -la *.so td/*.so 2>/dev/null || find . -name "*.so" 2>/dev/null | head -10
+          find . -name "*.so" 2>/dev/null | head -10
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
