@@ -31,7 +31,7 @@ jobs:
           make -j$(nproc)
           make install_sw
 
-      - name: Build TDLib (static libraries)
+      - name: Build TDLib
         run: |
           export ANDROID_NDK=$ANDROID_HOME/ndk/27.3.13750724
           export PATH=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
@@ -48,14 +48,12 @@ jobs:
                 -DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR \
                 -DCMAKE_BUILD_TYPE=Release \
                 ..
-          make -j$(nproc) all
-          echo "=== Build artifacts ==="
-          find . -name "*.a" -type f 2>/dev/null | head -20
-          echo "=== Total .a files count ==="
-          find . -name "*.a" -type f 2>/dev/null | wc -l
+          make -j$(nproc) tdjson
+          echo "=== Looking for tdjson ==="
+          find . -name "*tdjson*" -type f 2>/dev/null
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: tdlib-android-arm64
-          path: ${{ github.workspace }}/td/build/**/*.a
+          path: ${{ github.workspace }}/td/build/**/*tdjson*
