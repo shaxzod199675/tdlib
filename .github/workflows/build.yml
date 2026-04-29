@@ -19,21 +19,14 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install NDK
-        run: |
-          ls -la $ANDROID_HOME/ndk/
-          echo "NDK versions available"
-
       - name: Build OpenSSL
         run: |
           export ANDROID_NDK=$ANDROID_HOME/ndk/27.3.13750724
           export PATH=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
-          which aarch64-linux-android-gcc || which aarch64-linux-android-clang || ls $ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android* 2>/dev/null || echo "Checking binutils..."
           cd td
           wget https://www.openssl.org/source/openssl-1.1.1w.tar.gz
           tar xzf openssl-1.1.1w.tar.gz
           cd openssl-1.1.1w
-          # For NDK 27+, use the clang toolchain
           ./Configure android-arm64 --cross-compile-prefix=aarch64-linux-android- --prefix=$GITHUB_WORKSPACE/openssl-install
           make -j$(nproc)
           make install_sw
@@ -50,6 +43,9 @@ jobs:
                 -DANDROID_PLATFORM=android-24 \
                 -DANDROID_STL=c++_shared \
                 -DOPENSSL_ROOT_DIR=$GITHUB_WORKSPACE/openssl-install \
+                -DOPENSSL_CRYPTO_LIBRARY=$GITHUB_WORKSPACE/openssl-install/lib/libcrypto.a \
+                -DOPENSSL_SSL_LIBRARY=$GITHUB_WORKSPACE/openssl-install/lib/libssl.a \
+                -DOPENSSL_INCLUDE_DIR=$GITHUB_WORKSPACE/openssl-install/include \
                 -DCMAKE_BUILD_TYPE=Release \
                 ..
           make -j$(nproc) tdjni
