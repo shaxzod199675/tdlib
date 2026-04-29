@@ -8,32 +8,36 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build TDLib Android
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: td/example/android/Dockerfile
-          platforms: linux/amd64
-          build-args: |
-            ANDROID_NDK_VERSION=23.2.8568313
-            COMMIT_HASH=v1.8.0
-            ANDROID_STL=c++_static
-            TDLIB_INTERFACE=Java
-          outputs: type=local,dest=/tmp/tdlib-output
-
-      - name: Show build output
+      - name: Setup Java
         run: |
-          ls -la /tmp/tdlib-output/ || echo "No output"
-          find /tmp/tdlib-output -name "*.so" 2>/dev/null || echo "No .so files"
+          apt-get update && apt-get install -y default-jdk
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Get TDLib
+        run: |
+          git clone --branch v1.8.0 --depth 1 https://github.com/tdlib/td.git
+
+      - name: Build OpenSSL
+        run: |
+          cd $GITHUB_WORKSPACE/td/example/android
+          export ANDROID_NDK=$ANDROID_HOME/ndk/25.2.0
+          ./build-openssl.sh SDK $ANDROID_NDK OpenSSL_1_1_1w
+
+      - name: Build TDLib
+        run: |
+          cd $GITHUB_WORKSPACE/td/example/android
+          export ANDROID_NDK=$ANDROID_HOME/ndk/25.2.0
+          ./build-tdlib.sh SDK $ANDROID_NDK OpenSSL c++_static Java
+          ls -la tdlib/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: tdlib-android-arm64
-          path: /tmp/tdlib-output/
+          path: ${{ github.workspace }}/td/example/android/tdlib/
