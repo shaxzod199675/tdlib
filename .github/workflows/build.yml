@@ -7,17 +7,23 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
       - name: Install dependencies
         run: |
-          apt-get update && apt-get install -y openjdk-17-jdk gperf make perl php-cli unzip wget curl
+          sudo apt-get update
+          sudo apt-get install -y gperf make perl php unzip wget
 
       - name: Get TDLib
         run: |
@@ -40,7 +46,6 @@ jobs:
           export ANDROID_NDK=$ANDROID_HOME/ndk/27.3.13750724
           export PATH=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
           export OPENSSL_ROOT_DIR=$GITHUB_WORKSPACE/openssl-install
-          export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
           cd $GITHUB_WORKSPACE/td/example/android
           ./build-tdlib.sh SDK $ANDROID_NDK OpenSSL c++_static Java
