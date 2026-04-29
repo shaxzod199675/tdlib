@@ -15,9 +15,9 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Ninja
+      - name: Install dependencies
         run: |
-          apt-get update && apt-get install -y ninja-build
+          apt-get update && apt-get install -y openjdk-17-jdk gperf make perl php-cli unzip wget curl
 
       - name: Get TDLib
         run: |
@@ -35,36 +35,19 @@ jobs:
           make -j$(nproc)
           make install_sw
 
-      - name: Create mime_type stubs
-        run: |
-          mkdir -p td/tdutils/generate/auto
-          echo 'const char* get_mime_type_extension(const char* mime_type) { return nullptr; }' > td/tdutils/generate/auto/mime_type_to_extension.cpp
-          echo 'const char* get_extension_mime_type(const char* extension) { return nullptr; }' > td/tdutils/generate/auto/extension_to_mime_type.cpp
-
-      - name: Build TDLib with Ninja
+      - name: Build TDLib using example/android
         run: |
           export ANDROID_NDK=$ANDROID_HOME/ndk/27.3.13750724
           export PATH=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
           export OPENSSL_ROOT_DIR=$GITHUB_WORKSPACE/openssl-install
+          export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
-          cd $GITHUB_WORKSPACE/td
-          mkdir -p build && cd build
-          cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
-                -G Ninja \
-                -DANDROID_ABI="arm64-v8a" \
-                -DANDROID_PLATFORM=android-24 \
-                -DANDROID_STL=c++_shared \
-                -DTD_ENABLE_JNI=ON \
-                -DTDUTILS_MIME_TYPE=OFF \
-                -DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR \
-                -DCMAKE_BUILD_TYPE=Release \
-                ..
-          ninja -j$(nproc) tdjson
-          echo "=== Checking for .so files ==="
-          find . -name "*.so" -type f 2>/dev/null
+          cd $GITHUB_WORKSPACE/td/example/android
+          ./build-tdlib.sh SDK $ANDROID_NDK OpenSSL c++_static Java
+          ls -la tdlib/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: tdlib-android-arm64
-          path: ${{ github.workspace }}/td/build/**/*.so
+          path: ${{ github.workspace }}/td/example/android/tdlib/
