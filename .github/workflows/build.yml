@@ -21,25 +21,26 @@ jobs:
 
       - name: Install NDK
         run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;25.2.0" 2>/dev/null || true
-          ls -la $ANDROID_HOME/ndk/ 2>/dev/null || echo "NDK not found"
+          ls -la $ANDROID_HOME/ndk/
+          echo "NDK versions available"
 
       - name: Build OpenSSL
         run: |
-          export ANDROID_NDK=$ANDROID_HOME/ndk/25.2.0
+          export ANDROID_NDK=$ANDROID_HOME/ndk/27.3.13750724
           export PATH=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
-          ls -la $ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/ | head -20
+          which aarch64-linux-android-gcc || which aarch64-linux-android-clang || ls $ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android* 2>/dev/null || echo "Checking binutils..."
           cd td
           wget https://www.openssl.org/source/openssl-1.1.1w.tar.gz
           tar xzf openssl-1.1.1w.tar.gz
           cd openssl-1.1.1w
-          ./Configure android-arm64 --prefix=$GITHUB_WORKSPACE/openssl-install
+          # For NDK 27+, use the clang toolchain
+          ./Configure android-arm64 --cross-compile-prefix=aarch64-linux-android- --prefix=$GITHUB_WORKSPACE/openssl-install
           make -j$(nproc)
           make install_sw
 
       - name: Build TDLib
         run: |
-          export ANDROID_NDK=$ANDROID_HOME/ndk/25.2.0
+          export ANDROID_NDK=$ANDROID_HOME/ndk/27.3.13750724
           export PATH=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
 
           cd $GITHUB_WORKSPACE/td
