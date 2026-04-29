@@ -56,8 +56,14 @@ jobs:
                 -DOPENSSL_INCLUDE_DIR=$GITHUB_WORKSPACE/openssl-install/include \
                 -DCMAKE_BUILD_TYPE=Release \
                 ..
-          cmake --build . --target tdjson -j$(nproc) 2>&1 | tail -50
-          find . -name "*.so" -type f 2>/dev/null
+          echo "=== Available targets ==="
+          cmake --build . --target help 2>&1 | grep -E "tdjson|tdjni|tdapi|tdcore"
+          echo "=== Building tdjson ==="
+          cmake --build . --target tdjson -j$(nproc) 2>&1 | tail -100
+          echo "=== Looking for .so files ==="
+          find . -name "*.so" -type f 2>/dev/null || echo "No .so files found"
+          echo "=== Looking for .a files ==="
+          find . -name "*.a" -type f 2>/dev/null | head -5
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
