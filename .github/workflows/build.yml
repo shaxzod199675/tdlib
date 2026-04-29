@@ -49,7 +49,7 @@ jobs:
                 -DOPENSSL_INCLUDE_DIR=$GITHUB_WORKSPACE/openssl-install/include \
                 -DCMAKE_BUILD_TYPE=Release \
                 ..
-          make -j$(nproc) tdjni
+          make -j$(nproc) tdjson tdapi tdcore tdclient
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
