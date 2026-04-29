@@ -31,7 +31,13 @@ jobs:
           make -j$(nproc)
           make install_sw
 
-      - name: Build TDLib
+      - name: Create mime_type stubs
+        run: |
+          mkdir -p td/tdutils/generate/auto
+          echo 'const char* get_mime_type_extension(const char* mime_type) { return nullptr; }' > td/tdutils/generate/auto/mime_type_to_extension.cpp
+          echo 'const char* get_extension_mime_type(const char* extension) { return nullptr; }' > td/tdutils/generate/auto/extension_to_mime_type.cpp
+
+      - name: Build TDLib with Ninja
         run: |
           export ANDROID_NDK=$ANDROID_HOME/ndk/27.3.13750724
           export PATH=$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
@@ -40,6 +46,7 @@ jobs:
           cd $GITHUB_WORKSPACE/td
           mkdir -p build && cd build
           cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
+                -G Ninja \
                 -DANDROID_ABI="arm64-v8a" \
                 -DANDROID_PLATFORM=android-24 \
                 -DANDROID_STL=c++_shared \
@@ -48,7 +55,11 @@ jobs:
                 -DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR \
                 -DCMAKE_BUILD_TYPE=Release \
                 ..
-          make -j$(nproc) all
+          ninja -j$(nproc) tdjson
+          echo "=== Checking for .so files ==="
+          find . -name "*.so" -type f 2>/dev/null
+          ls -la *.so 2>/dev/null || echo "No .so in root"
+          ls -la tdjson/*.so 2>/dev/null || echo "No .so in tdjson dir"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
