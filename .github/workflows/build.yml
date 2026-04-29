@@ -21,13 +21,13 @@ jobs:
 
       - name: Build OpenSSL
         run: |
-          export ANDROID_NDK=$ANDROID_HOME/ndk/25.2.0
+          export ANDROID_NDK=$ANDROID_HOME/ndk/27.3.13750724
           cd $GITHUB_WORKSPACE/td/example/android
           ./build-openssl.sh SDK $ANDROID_NDK OpenSSL_1_1_1w
 
       - name: Build TDLib
         run: |
-          export ANDROID_NDK=$ANDROID_HOME/ndk/25.2.0
+          export ANDROID_NDK=$ANDROID_HOME/ndk/27.3.13750724
           cd $GITHUB_WORKSPACE/td/example/android
           ./build-tdlib.sh SDK $ANDROID_NDK OpenSSL c++_static Java
           ls -la tdlib/
